@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard SENA</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #007f00, #00cc00);
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        header img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .container-principal {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .botones-meses {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .botones-meses button {
+            background-color: #70caff;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            margin: 3px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .botones-meses button:hover {
+            background-color: #70caff;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th {
+            background-color: #70caff;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            border: 1px solid #00000021;
+            padding: 8px;
+        }
+
+        .subir-excel {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .subir-excel input[type="file"] {
+            margin: 10px 0;
+        }
+
+        .subir-excel button {
+            background-color: #004d00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .subir-excel button:hover {
+            background-color: #008000;
+        }
+
+        .graficas {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .grafica {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <img src="{{ url_for('static', filename='logo_sena.png') }}" alt="Logo SENA">
+        <h2>Dashboard SENA - Control de visitas economia circular  </h2>
+    </header>
+
+    <div class="container-principal">
+
+        <!-- Botones de meses -->
+        <div class="botones-meses">
+            <button>ENE</button>
+            <button>FEB</button>
+            <button>MAR</button>
+            <button>ABR</button>
+            <button>MAY</button>
+            <button>JUN</button>
+            <button>JUL</button>
+            <button>AGO</button>
+            <button>SEP</button>
+            <button>OCT</button>
+            <button>NOV</button>
+            <button>DIC</button>
+        </div>
+
+        <!-- Tabla -->
+<div class="tabla-contenedor">
+    {% if tabla %}
+        <div class="tabla-excel">
+            {{ tabla | safe }}
+        </div>
+    {% else %}
+        <p style="text-align:center;">No hay datos cargados.</p>
+    {% endif %}
+</div>
+<div style="text-align:center; margin:20px;">
+    <button id="btnTotal" 
+            style="background-color:#004d00; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
+        Calcular Total
+    </button>
+    <p id="resultadoTotal" style="font-weight:bold; color:#004d00; margin-top:10px;"></p>
+</div>
+
+        <!-- Subir Excel -->
+        <div class="subir-excel">
+            <h3>Subir Excel</h3>
+            <form method="POST" enctype="multipart/form-data" action="/subir_excel">
+                <input type="file" name="file" accept=".xlsx, .xls" required>
+                <br>
+                <button type="submit">Subir</button>
+            </form>
+        </div>
+
+        <!-- Gráficas -->
+        <div class="graficas">
+            <div class="grafica">
+                <canvas id="graficaBarras" width="250" height="200"></canvas>
+            </div>
+            <div class="grafica">
+                <canvas id="graficaTotal" width="200" height="200"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>© 2025 SENA - Sistema de Control de economia circular</p>
+    </footer>
+
+    <!-- Script de Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Ejemplo de gráfica de barras
+        const ctxBarras = document.getElementById('graficaBarras');
+        if (ctxBarras) {
+            new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: ['Actividad 1', 'Actividad 2', 'Actividad 3', 'Actividad 4'],
+                    datasets: [{
+                        label: 'Totales',
+                        data: [17, 21, 25, 28],
+                        backgroundColor: ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6']
+                        
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                    
+                }
+            });
+        }
+
+
+        // Ejemplo de gráfica circular
+        const ctxCircular = document.getElementById('graficaTotal');
+        if (ctxCircular) {
+            new Chart(ctxCircular, {
+                type: 'doughnut',
+                data: {
+                    labels: ['María Angélica', 'Diana Causangue'],
+                    datasets: [{
+                        data: [31, 30],
+                        backgroundColor: ['#e74c3c', '#9b59b6']
+                        
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' }
+                        
+                    }
+                }
+            });
+        }
+        
+    </script>
+<script>
+document.getElementById("btnTotal").addEventListener("click", function() {
+    let total = 0;
+
+    // Busca la columna que tiene "Totales por mes"
+    const tabla = document.querySelector(".tabla-registros");
+    if (!tabla) return;
+
+    const rows = tabla.querySelectorAll("tbody tr");
+    const headerCells = tabla.querySelectorAll("thead th");
+
+    let totalColIndex = -1;
+    headerCells.forEach((th, i) => {
+        if (th.textContent.trim().toLowerCase().includes("total")) {
+            totalColIndex = i;
+        }
+    });
+
+    if (totalColIndex === -1) {
+        alert("No se encontró la columna de totales.");
+        return;
+    }
+
+    // Suma los valores de esa columna
+    rows.forEach(row => {
+        const cell = row.cells[totalColIndex];
+        const val = parseFloat(cell?.textContent.replace(",", "."));
+        if (!isNaN(val)) total += val;
+    });
+
+    document.getElementById("resultadoTotal").textContent = 
+        "Total general: " + total.toLocaleString();
+});
+</script>
+</body>
+</html>
